@@ -26,30 +26,51 @@ import (
 	"log"
 	"net"
 
+	pb "github.com/WiscEdgeCentralController/heartbeat"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 const (
-	port = ":50051"
+	port = ":50050"
 )
+
+var allClientInfo map[string]clientInfo
 
 // server is used to implement helloworld.GreeterServer.
 type server struct{}
 
+type clientInfo struct{
+	clientId string
+	meaasge string
+}
+
+
+
 // SayHello implements helloworld.GreeterServer
-func (s *server) ReceiveAndReply(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.Name)
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+func (s *server) ReceiveAndReply(ctx context.Context, in *pb.HeartbeatRequest) (*pb.HeartbeatReply, error) {
+	clientId := in.ClientId
+	info, ok := allClientInfo[clientId]
+
+	if ok {
+		//update info
+		info.meaasge = in.Name
+		log.Printf("Received: %v", in.Name)
+	} else {
+		//creat new client instance
+		allClientInfo[clientId] = clientInfo{clientId, in.Name}
+	}
+	return &pb.HeartbeatReply{Message: "Hello " + in.Name}, nil
 }
 
 func main() {
+	allClientInfo= make(map[string]clientInfo)
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
+	pb.RegisterHeartbeatPBServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

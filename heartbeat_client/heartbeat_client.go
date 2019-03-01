@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/WiscEdgeCentralController/heartbeat"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 type Heartbeat struct {
@@ -31,6 +31,8 @@ func NewHeartbeat(
 	address := fmt.Sprintf("%s:%d", host, port)
 	stopCh := make(chan struct{})
 
+	// todo: get client address
+
 	return &Heartbeat{
 		address, address, interval, timeOut, message, stopCh,
 	}, nil
@@ -48,7 +50,7 @@ func (hb *Heartbeat) StartHeartbeat() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewHeartbeatPBClient(conn)
 
 	for {
 		select {
@@ -58,7 +60,7 @@ func (hb *Heartbeat) StartHeartbeat() {
 		case <-time.After(hb.interval):
 			ctx, cancel := context.WithTimeout(context.Background(), hb.timeOut)
 
-			r, err := c.ReceiveAndReply(ctx, &pb.HelloRequest{Name: hb.message.Message})
+			r, err := c.ReceiveAndReply(ctx, &pb.HeartbeatRequest{Name: hb.message.Message, ClientId: "testClient"})
 			if err != nil {
 				log.Fatalf("could not greet: %v", err)
 			}

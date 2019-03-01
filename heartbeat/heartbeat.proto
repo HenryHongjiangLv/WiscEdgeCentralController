@@ -21,17 +21,18 @@ option java_outer_classname = "HeartbeatProto";
 package heartbeat;
 
 // The greeting service definition.
-service Greeter {
+service HeartbeatPB {
   // Sends a greeting
-  rpc ReceiveAndReply(HelloRequest) returns (HelloReply) {}
+  rpc ReceiveAndReply(HeartbeatRequest) returns (HeartbeatReply) {}
 }
 
 // The request message containing the user's name.
-message HelloRequest {
+message HeartbeatRequest {
   string name = 1;
+  string clientId = 2;
 }
 
 // The response message containing the greetings
-message HelloReply {
+message HeartbeatReply {
   string message = 1;
 }
